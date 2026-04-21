@@ -75,10 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Rust audit
-        uses: actions-rs/cargo@v1
-        with:
-          command: audit
-          args: --deny warnings
+        run: cargo install cargo-audit && cargo audit --deny warnings
       - name: Node audit
         run: npm audit --audit-level=moderate
 
