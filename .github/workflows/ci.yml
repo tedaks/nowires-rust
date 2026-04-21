@@ -74,7 +74,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
       - name: Rust audit
+        working-directory: apps/api-rs
         run: cargo install cargo-audit && cargo audit --deny warnings
       - name: Node audit
         run: npm audit --audit-level=moderate
@@ -87,6 +89,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: Check outdated Rust deps
+        working-directory: apps/api-rs
         run: cargo install cargo-outdated && cargo outdated --exit-code 1 || true
       - name: Check outdated npm deps
         run: npm outdated || true
@@ -204,6 +207,7 @@ jobs:
           sleep 10
         working-directory: apps/api-rs
       - name: Install Playwright
+        working-directory: apps/web
         run: npx playwright install --with-deps chromium
       - name: Start frontend
         run: npx next start apps/web -p 3000 &
@@ -256,6 +260,7 @@ jobs:
           sleep 10
         working-directory: apps/api-rs
       - name: Install Playwright
+        working-directory: apps/web
         run: npx playwright install --with-deps firefox
       - name: Start frontend
         run: npx next start apps/web -p 3000 &
