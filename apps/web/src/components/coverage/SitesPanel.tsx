@@ -5,6 +5,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import type { CoverageSite } from "@/lib/site";
 
+function isValidHexColor(c: string): boolean {
+  return /^#[0-9a-fA-F]{6}$/.test(c);
+}
+
 interface Props {
   sites: CoverageSite[];
   onToggle: (id: string, visible: boolean) => void;
@@ -57,7 +61,7 @@ export default function SitesPanel({
             <div className="flex-1 min-w-0">
               <div
                className="text-xs font-bold truncate text-[var(--site-color)]"
-               style={{ "--site-color": site.color } as React.CSSProperties}
+                style={isValidHexColor(site.color) ? { "--site-color": site.color } as React.CSSProperties : undefined}
               >
                 {site.name}
               </div>

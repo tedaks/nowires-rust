@@ -7,21 +7,48 @@ pub const PROP_MODE_NAMES: [&str; 6] = [
     "Mixed Path",
 ];
 
-#[allow(dead_code)]
+pub const ITM_LOSS_SENTINEL: f64 = 999.0;
+
+pub struct ITMParams {
+    pub tx_h_m: f64,
+    pub rx_h_m: f64,
+    pub climate: i32,
+    pub n0: f64,
+    pub f_mhz: f64,
+    pub polarization: i32,
+    pub epsilon: f64,
+    pub sigma: f64,
+    pub time_pct: f64,
+    pub location_pct: f64,
+    pub situation_pct: f64,
+}
+
+/// Result from ITM point-to-point propagation computation.
+/// Some fields are kept for diagnostic completeness even if not currently used in API responses.
 pub struct ITMResult {
     pub loss_db: f64,
     pub mode: i32,
     pub warnings: i32,
     pub d_hzn_tx_m: f64,
     pub d_hzn_rx_m: f64,
+    /// Keep for diagnostic use.
+    #[allow(dead_code)]
     pub theta_hzn_tx: f64,
+    /// Keep for diagnostic use.
+    #[allow(dead_code)]
     pub theta_hzn_rx: f64,
     pub h_e_tx_m: f64,
     pub h_e_rx_m: f64,
+    /// Keep for diagnostic use.
+    #[allow(dead_code)]
     pub n_s: f64,
     pub delta_h_m: f64,
     pub a_ref_db: f64,
+    /// Keep for diagnostic use.
+    #[allow(dead_code)]
     pub a_fs_db: f64,
+    /// Keep for diagnostic use.
+    #[allow(dead_code)]
     pub d_km: f64,
 }
 
@@ -78,21 +105,30 @@ pub fn itm_p2p_loss(
                 d_km: iv.d__km,
             }
         }
-        Err(_) => ITMResult {
-            loss_db: 999.0,
-            mode: 0,
-            warnings: 1,
-            d_hzn_tx_m: 0.0,
-            d_hzn_rx_m: 0.0,
-            theta_hzn_tx: 0.0,
-            theta_hzn_rx: 0.0,
-            h_e_tx_m: 0.0,
-            h_e_rx_m: 0.0,
-            n_s: 0.0,
-            delta_h_m: 0.0,
-            a_ref_db: 0.0,
-            a_fs_db: 0.0,
-            d_km: 0.0,
-        },
+        Err(e) => {
+            tracing::warn!(
+                "ITM computation failed: {:?} (f={} MHz, climate={}, profile_len={})",
+                e,
+                f_mhz,
+                climate,
+                profile.len()
+            );
+            ITMResult {
+                loss_db: ITM_LOSS_SENTINEL,
+                mode: 0,
+                warnings: 1,
+                d_hzn_tx_m: 0.0,
+                d_hzn_rx_m: 0.0,
+                theta_hzn_tx: 0.0,
+                theta_hzn_rx: 0.0,
+                h_e_tx_m: 0.0,
+                h_e_rx_m: 0.0,
+                n_s: 0.0,
+                delta_h_m: 0.0,
+                a_ref_db: 0.0,
+                a_fs_db: 0.0,
+                d_km: 0.0,
+            }
+        }
     }
 }

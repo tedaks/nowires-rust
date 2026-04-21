@@ -1,6 +1,9 @@
-use crate::itm_bridge::itm_p2p_loss;
+use crate::itm_bridge::{itm_p2p_loss, ITMParams};
 use crate::signal_levels::sample_line_from_grid;
 use crate::terrain::build_pfl;
+
+/// ITM mdvar parameter (area mode)
+const COVERAGE_MDVAR: i32 = 12;
 
 const ITM_LOSS_UPPER_BOUND: f64 = 400.0;
 
@@ -14,6 +17,8 @@ pub struct ITMWorkerResult {
 pub fn itm_worker(
     grid_data: &[Vec<f32>],
     grid_meta: &GridMeta,
+    tx_lat: f64,
+    tx_lon: f64,
     args: &ITMWorkerArgs,
 ) -> Option<ITMWorkerResult> {
     let elevs = sample_line_from_grid(
@@ -24,8 +29,8 @@ pub fn itm_worker(
         grid_meta.max_lon,
         grid_meta.n_lat,
         grid_meta.n_lon,
-        grid_meta.tx_lat,
-        grid_meta.tx_lon,
+        tx_lat,
+        tx_lon,
         args.target_lat,
         args.target_lon,
         args.n_pts,
@@ -33,20 +38,34 @@ pub fn itm_worker(
     let elevs_f64: Vec<f64> = elevs.iter().map(|&v| v as f64).collect();
     let pfl = build_pfl(&elevs_f64, args.step_m);
 
+    let ITMParams {
+        tx_h_m,
+        rx_h_m,
+        climate,
+        n0,
+        f_mhz,
+        polarization,
+        epsilon,
+        sigma,
+        time_pct,
+        location_pct,
+        situation_pct,
+    } = args.params;
+
     let res = itm_p2p_loss(
-        args.tx_h_m,
-        args.rx_h_m,
+        tx_h_m,
+        rx_h_m,
         &pfl,
-        args.climate,
-        args.n0,
-        args.f_mhz,
-        args.polarization,
-        args.epsilon,
-        args.sigma,
-        12,
-        args.time_pct,
-        args.location_pct,
-        args.situation_pct,
+        climate,
+        n0,
+        f_mhz,
+        polarization,
+        epsilon,
+        sigma,
+        COVERAGE_MDVAR,
+        time_pct,
+        location_pct,
+        situation_pct,
     );
 
     if !res.loss_db.is_finite() || res.loss_db > ITM_LOSS_UPPER_BOUND {
@@ -68,8 +87,6 @@ pub struct GridMeta {
     pub max_lon: f64,
     pub n_lat: usize,
     pub n_lon: usize,
-    pub tx_lat: f64,
-    pub tx_lon: f64,
 }
 
 pub struct ITMWorkerArgs {
@@ -79,17 +96,7 @@ pub struct ITMWorkerArgs {
     pub target_lon: f64,
     pub step_m: f64,
     pub n_pts: usize,
-    pub tx_h_m: f64,
-    pub rx_h_m: f64,
-    pub climate: i32,
-    pub n0: f64,
-    pub f_mhz: f64,
-    pub polarization: i32,
-    pub epsilon: f64,
-    pub sigma: f64,
-    pub time_pct: f64,
-    pub location_pct: f64,
-    pub situation_pct: f64,
+    pub params: ITMParams,
     pub eirp_dbm: f64,
     pub ant_gain_adj: f64,
     pub rx_gain_dbi: f64,

@@ -63,6 +63,10 @@ export default function P2PPanel({ txCoords, rxCoords, onResult }: Props) {
     }
   }, [error]);
 
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
+
   async function handleAnalyze() {
     if (!txCoords || !rxCoords) {
       setError("Please select both TX and RX locations on the map.");

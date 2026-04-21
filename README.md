@@ -38,6 +38,12 @@ GLO30_TILES_DIR=/path/to/glo30/tiles
 
 # Optional land cover data for additional analysis
 LANDCOVER_DIR=/path/to/landcover/tiles
+
+# CORS origins for production (comma-separated). If not set, falls back to DEV_ORIGINS.
+CORS_ORIGINS=https://nowires.example.com
+
+# Elevation cache directory (defaults to data/elev_cache/)
+ELEV_CACHE_DIR=/path/to/cache
 ```
 
 For frontend development, create `apps/web/.env.local`:
@@ -71,6 +77,8 @@ NoWires fetches terrain elevation from multiple sources in priority order:
 
 For best performance, download and configure local GLO30 or SRTM1 tiles. Tiles must be organized in the standard directory structure (e.g., `N14/E120.tif` for GLO30).
 
+Elevation grids are cached on disk with deterministic filenames and atomic writes for concurrency safety.
+
 ## Architecture
 
 ```
@@ -78,27 +86,37 @@ nowires/
 ├── apps/
 │   ├── api-rs/                  # Rust/Axum backend
 │   │   └── src/
-│   │       ├── main.rs          # Server, CORS, rate limiting
+│   │       ├── main.rs          # Server, CORS, body limit, semaphore
 │   │       ├── routes/          # API endpoint handlers
 │   │       │   ├── p2p.rs
 │   │       │   ├── coverage.rs
 │   │       │   └── coverage_radius.rs
-│   │       ├── itm_bridge.rs   # rustitm wrapper
-│   │       ├── terrain.rs      # Haversine, bearing, profile, PFL
-│   │       ├── elevation/      # GDAL GeoTIFF elevation grid + cache
-│   │       ├── coverage/       # ITM workers, PNG rendering, radius
-│   │       ├── fresnel.rs      # Fresnel profile + coverage coloring
-│   │       ├── signal_levels.rs
-│   │       └── antenna.rs      # Antenna gain pattern
+│   │       ├── models.rs        # Request structs + validation
+│   │       ├── models/response.rs  # Response structs
+│   │       ├── itm_bridge.rs    # rustitm wrapper + ITMParams
+│   │       ├── rounding.rs      # round1/round2/round3 helpers
+│   │       ├── terrain.rs       # Haversine, bearing, profile, PFL
+│   │       ├── elevation/       # GDAL GeoTIFF elevation grid + cache
+│   │       ├── coverage/        # GridMeta, ITM workers, PNG render, radius
+│   │       ├── fresnel.rs       # Fresnel profile + coverage coloring
+│   │       ├── signal_levels.rs # dBm thresholds, colors, sampling
+│   │       └── antenna.rs       # Antenna gain pattern
 │   └── web/                    # Next.js 16 + TypeScript frontend
 │       └── src/
 │           ├── app/            # Routes and error boundary
 │           ├── components/     # MapLibre map, P2P panel, Coverage panel
 │           └── lib/            # API client, types, utilities
 ├── data/                       # Runtime cache (gitignored)
-├── .github/workflows/ci.yml    # CI pipeline
+├── .github/workflows/ci.yml   # CI pipeline
 └── LICENSE.md
 ```
+
+## Server Configuration
+
+- **Body size limit**: 2 MB max request body
+- **Concurrency limit**: 4 simultaneous expensive requests (coverage, radius)
+- **Port**: 8000 (exits with error message on bind failure)
+- **CORS**: `CORS_ORIGINS` env var (production), falls back to `DEV_ORIGINS`, then localhost defaults
 
 ## Testing
 
@@ -122,10 +140,11 @@ cd apps/api-rs && cargo clippy && cargo fmt --check && cargo test
 | 384×384   | ~8s       | <10ms   |
 
 Key optimizations:
-- GDAL vectorized GeoTIFF elevation reading (~160ms vs ~88s API fallback)
+- Bulk GDAL GeoTIFF reads (entire raster loaded once per tile)
 - Rayon parallelism for coverage grid computation
-- Capped profile lengths for distant pixels (max 75 points)
-- LRU cache for rendered coverage PNGs
+- Capped profile lengths for distant pixels (configurable, default max 75)
+- Deterministic file-based elevation cache with atomic writes
+- Request body size limit (2 MB) and concurrency semaphore (4 permits)
 
 ## Credits
 

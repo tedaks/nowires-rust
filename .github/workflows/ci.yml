@@ -85,14 +85,15 @@ jobs:
     name: Dependency updates
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: Check outdated Rust deps
         working-directory: apps/api-rs
-        run: cargo install cargo-outdated && cargo outdated --exit-code 1 || true
+        run: cargo install cargo-outdated && cargo outdated --exit-code 1
       - name: Check outdated npm deps
-        run: npm outdated || true
+        run: npm outdated
 
   coverage:
     name: Code coverage

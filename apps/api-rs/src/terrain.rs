@@ -21,6 +21,9 @@ pub fn bearing_destination(lat: f64, lon: f64, bearing_deg: f64, dist_m: f64) ->
 }
 
 pub fn build_pfl(elevations: &[f64], step_m: f64) -> Vec<f64> {
+    if elevations.is_empty() {
+        return vec![];
+    }
     let n = (elevations.len() - 1) as f64;
     let mut pfl = Vec::with_capacity(elevations.len() + 2);
     pfl.push(n);
@@ -29,6 +32,8 @@ pub fn build_pfl(elevations: &[f64], step_m: f64) -> Vec<f64> {
     pfl
 }
 
+/// Interpolate NaN values in a slice using nearest-neighbor averaging.
+/// Kept for potential future use in elevation processing.
 #[allow(dead_code)]
 pub fn interpolate_nans(values: &mut [f64]) {
     if values.is_empty() {
@@ -48,6 +53,8 @@ pub fn interpolate_nans(values: &mut [f64]) {
     }
 }
 
+/// Compute the initial bearing (forward azimuth) from point 1 to point 2.
+/// Kept for potential future use in bearing-based calculations.
 #[allow(dead_code)]
 pub fn initial_bearing_deg(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> f64 {
     let dlon = (lon2 - lon1).to_radians();

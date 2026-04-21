@@ -17,6 +17,11 @@ async function post<T>(path: string, body: unknown, signal?: AbortSignal): Promi
     const text = await res.text();
     throw new Error(`Server error ${res.status}: ${text.substring(0, 200)}`);
   }
+  const ct = res.headers.get("content-type") ?? "";
+  if (!ct.includes("application/json")) {
+    const text = await res.text();
+    throw new Error(`Unexpected content-type "${ct}": ${text.substring(0, 200)}`);
+  }
   return res.json() as Promise<T>;
 }
 

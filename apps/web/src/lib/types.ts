@@ -63,6 +63,7 @@ export interface P2PResponse {
   flags: P2PFlags;
   link_budget: LinkBudget;
   error?: string;
+  profile_original_count: number;
 }
 
 // POST /api/coverage and /api/coverage-radius
@@ -99,10 +100,10 @@ export interface LegendEntry {
 }
 
 export interface CoverageStats {
-  prx_min_dbm: number;
-  prx_max_dbm: number;
-  loss_min_db: number;
-  loss_max_db: number;
+  prx_min_dbm: number | null;
+  prx_max_dbm: number | null;
+  loss_min_db: number | null;
+  loss_max_db: number | null;
   pct_above_sensitivity: number;
   terrain_grid_n: number;
   terrain_spacing_m: number;
@@ -123,10 +124,12 @@ export interface CoverageResponse {
   rx_sensitivity_dbm: number;
   eirp_dbm: number;
   from_cache: boolean;
+  profile_step_m: number;
 }
 
 export interface CoverageRadiusResponse {
   avg_radius_km: number;
   min_radius_km: number;
   max_radius_km: number;
+  per_bearing: [number, number][];
 }

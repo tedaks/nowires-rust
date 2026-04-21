@@ -25,6 +25,7 @@ const mockCoverage: CoverageResponse = {
   rx_sensitivity_dbm: -100,
   eirp_dbm: 49,
   from_cache: false,
+  profile_step_m: 250,
 };
 
 describe("SITE_COLORS", () => {

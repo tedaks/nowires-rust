@@ -37,23 +37,27 @@ cd apps/api-rs && cargo clippy && cargo fmt --check
 - **Rust**: cargo clippy for lint, cargo fmt for format
 - **TypeScript**: Strict mode, no `any` types, use ESLint
 - **UI Components**: Use shadcn/ui primitives with Tailwind CSS only
+- **Rounding**: Use `round1`/`round2`/`round3` from `crate::rounding` — never inline `(v * N).round() / N`
+- **Constants**: Extract magic numbers to named `const` with doc comments
+- **Type safety**: Backend `Option<f64>` fields must map to `number | null` in TypeScript
 
 ## File Structure
 
 - Backend source: `apps/api-rs/src/`
+- Backend models: `apps/api-rs/src/models.rs` (request) + `models/response.rs` (response)
 - Frontend source: `apps/web/src/`
 - Backend tests: `apps/api-rs/src/**/*.rs` (unit tests next to source)
 - Frontend tests: `apps/web/src/lib/__tests__/*.test.ts`
 
 ## 300-Line Limit
 
-No source file should exceed 300 lines. Extract helpers and utilities into separate modules when approaching this limit.
+No source file should exceed 300 lines. Extract helpers and utilities into separate modules when approaching this limit. (shadcn/ui auto-generated files are exempt.)
 
 ## Submitting Changes
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/my-feature`)
 3. Make your changes and add tests
-4. Ensure all tests pass
+4. Ensure all tests pass and `cargo clippy` is clean
 5. Commit with a clear message
 6. Push and open a pull request

@@ -8,9 +8,9 @@ axum = { version = "0.8", features = ["json"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tower-http = { version = "0.6", features = ["cors"] }
+tower-http = { version = "0.6", features = ["cors", "limit"] }
 tower = { version = "0.5" }
-rustitm = { git = "https://github.com/tedaks/rustitm", branch = "master" }
+rustitm = { git = "https://github.com/tedaks/rustitm", rev = "459e95fa8fb4197c8ae774ea6711dc0e26741b64" }
 gdal = { version = "0.17", features = ["bindgen"] }
 image = "0.25"
 base64 = "0.22"
@@ -22,3 +22,5 @@ rayon = "1.10"
 [profile.release]
 opt-level = 3
 lto = true
+strip = true
+codegen-units = 1

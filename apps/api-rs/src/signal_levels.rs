@@ -49,6 +49,8 @@ pub const COLORS: [[u8; 4]; 7] = [
     [90, 20, 20, 0],
 ];
 
+const _: () = assert!(COLORS.len() == THRESHOLDS.len() + 1);
+
 #[allow(dead_code)]
 pub fn prx_to_color(prx_dbm: f64) -> [u8; 4] {
     if !prx_dbm.is_finite() {
@@ -77,8 +79,8 @@ pub fn sample_line_from_grid(
     lon2: f64,
     n_pts: usize,
 ) -> Vec<f32> {
-    if n_lat <= 1 || n_lon <= 1 {
-        return vec![0.0f32; n_pts];
+    if n_lat <= 1 || n_lon <= 1 || n_pts <= 1 {
+        return vec![0.0f32; n_pts.max(1)];
     }
     let d_lat = (max_lat - min_lat) / (n_lat - 1) as f64;
     let d_lon = (max_lon - min_lon) / (n_lon - 1) as f64;

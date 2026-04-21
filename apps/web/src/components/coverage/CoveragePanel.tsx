@@ -71,6 +71,10 @@ export default function CoveragePanel({ txCoords, onResult, onOverlayOpacity }: 
     return () => clearTimeout(t);
   }, [error]);
 
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
+
   const formRequest = () => {
     if (!txCoords) throw new Error("TX coordinates not set");
     return buildRequest(form, txCoords, computedRadius);

@@ -32,15 +32,15 @@ export default function CoverageResults({ result, opacity, onOpacityChange }: Pr
         <div className="flex justify-between">
           <span className="text-gray-400">Prx range</span>
           <span>
-            {result.stats?.prx_min_dbm?.toFixed(1)} to{" "}
-            {result.stats?.prx_max_dbm?.toFixed(1)} dBm
+            {result.stats?.prx_min_dbm != null ? `${result.stats.prx_min_dbm.toFixed(1)} to` : "N/A"}{" "}
+            {result.stats?.prx_max_dbm != null ? `${result.stats.prx_max_dbm.toFixed(1)} dBm` : ""}
           </span>
         </div>
         <div className="flex justify-between">
           <span className="text-gray-400">ITM loss</span>
           <span>
-            {result.stats?.loss_min_db?.toFixed(1)} to{" "}
-            {result.stats?.loss_max_db?.toFixed(1)} dB
+            {result.stats?.loss_min_db != null ? `${result.stats.loss_min_db.toFixed(1)} to` : "N/A"}{" "}
+            {result.stats?.loss_max_db != null ? `${result.stats.loss_max_db.toFixed(1)} dB` : ""}
           </span>
         </div>
         <div className="flex justify-between">
@@ -60,6 +60,10 @@ export default function CoverageResults({ result, opacity, onOpacityChange }: Pr
             {result.stats?.terrain_elev_max_m?.toFixed(0)} m (σ{" "}
             {result.stats?.terrain_elev_std_m} m)
           </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-400">Profile step</span>
+          <span>{result.profile_step_m} m</span>
         </div>
         <div className="flex justify-between">
           <span className="text-gray-400">Cache</span>

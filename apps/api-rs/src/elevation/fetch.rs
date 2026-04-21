@@ -71,6 +71,17 @@ fn read_geotiff_grid(
                 let (ds_rows, ds_cols) = (raster.y_size(), raster.x_size());
                 let nodata = raster.no_data_value().map(|v| v as f32);
 
+                // Bulk read entire rasterband once
+                let buf = match raster.read_as::<f32>(
+                    (0, 0),
+                    (ds_cols, ds_rows),
+                    (ds_cols, ds_rows),
+                    None,
+                ) {
+                    Ok(b) => b,
+                    Err(_) => continue,
+                };
+
                 for (i, &lat) in lats.iter().enumerate() {
                     for (j, &lon) in lons.iter().enumerate() {
                         if lat < lat_t as f64 - 1e-6 || lat >= (lat_t + 1) as f64 + 1e-6 {
@@ -85,16 +96,13 @@ fn read_geotiff_grid(
                         {
                             continue;
                         }
-                        if let Ok(window) = raster.read_as::<f32>((col, row), (1, 1), (1, 1), None)
-                        {
-                            let v = window.data()[0];
-                            if let Some(nd) = nodata {
-                                if (v - nd).abs() < 1e-3 {
-                                    continue;
-                                }
+                        let v = buf.data()[(row as usize) * ds_cols + col as usize];
+                        if let Some(nd) = nodata {
+                            if (v - nd).abs() < 1e-3 {
+                                continue;
                             }
-                            result[i][j] = v;
                         }
+                        result[i][j] = v;
                     }
                 }
             }

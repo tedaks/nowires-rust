@@ -83,14 +83,18 @@ impl ElevationGrid {
         n: usize,
         source: &str,
     ) -> PathBuf {
-        use std::hash::{Hash, Hasher};
-        let s = format!(
-            "{},{},{},{},{},{}",
-            source, min_lat, min_lon, max_lat, max_lon, n
-        );
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        s.hash(&mut hasher);
-        let h = format!("{:016x}", hasher.finish());
+        let s =
+            format!("elev_{source}_{min_lat:.4}_{min_lon:.4}_{max_lat:.4}_{max_lon:.4}_{n}.json");
+        let safe: String = s
+            .chars()
+            .map(|c| {
+                if c.is_alphanumeric() || c == '_' || c == '.' || c == '-' {
+                    c
+                } else {
+                    '_'
+                }
+            })
+            .collect();
         let cache_dir = std::env::var("ELEV_CACHE_DIR")
             .map(PathBuf::from)
             .unwrap_or_else(|_| {
@@ -98,7 +102,7 @@ impl ElevationGrid {
                 d.push("../../data/elev_cache");
                 d
             });
-        cache_dir.join(format!("{}.npz", h))
+        cache_dir.join(format!("{}.json", safe))
     }
 
     fn try_load_cache(
@@ -147,12 +151,12 @@ impl ElevationGrid {
             max_lon: self.max_lon,
             data: self.data.clone(),
         };
-        let _ = std::fs::write(
-            &path,
-            serde_json::to_string(&cached)
-                .unwrap_or_default()
-                .as_bytes(),
-        );
+        if let Ok(json) = serde_json::to_string(&cached) {
+            let tmp_path = path.with_extension("json.tmp");
+            if std::fs::write(&tmp_path, json.as_bytes()).is_ok() {
+                let _ = std::fs::rename(&tmp_path, &path);
+            }
+        }
     }
 }
 
