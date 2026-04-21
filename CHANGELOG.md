@@ -13,13 +13,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Coverage radius estimation per bearing
 - Multi-site coverage comparison with overlay support
 - Directional antenna pattern support (azimuth, beamwidth, front-back ratio)
-- Multiple elevation source support: GLO30, SRTM1, HGT files, OpenTopography API
+- Multiple elevation source support: GLO30, SRTM1, GDAL fallback
 - NaN-aware elevation handling with linear interpolation
 - LRU cache for rendered coverage PNGs
 - Rate limiting middleware (30 requests/minute)
 - vitest unit tests for frontend utilities
 - Playwright E2E test infrastructure
-- Full CI pipeline (ESLint, TypeScript, vitest, Next.js build, ruff, pytest, Playwright)
+- Full CI pipeline (ESLint, TypeScript, vitest, Next.js build, cargo clippy, cargo fmt, Playwright)
 
 ### Changed
 - Frontend charting library changed from Plotly to Recharts
@@ -28,5 +28,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 - Corrected ITM time/location/situation parameter scaling
-- Fixed elevation source priority chain (GLO30 → SRTM1 → HGT → API)
+- Fixed elevation source priority chain (GLO30 → SRTM1 → GDAL fallback)
 - Fixed climate enum indexing (API uses 0-indexed, ITM uses 1-indexed)

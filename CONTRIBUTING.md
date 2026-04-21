@@ -10,12 +10,11 @@ git clone https://github.com/tedaks/nowires.git
 cd nowires
 
 # Install dependencies
-pip install -r apps/api/requirements.txt
 npm install
 
 # Run development servers
 npm run dev:web          # Frontend on http://localhost:3000
-cd apps/api && python -m uvicorn app.main:app --reload  # Backend on http://localhost:8000
+npm run dev:api           # Backend on http://localhost:8000
 ```
 
 ## Testing
@@ -25,25 +24,25 @@ cd apps/api && python -m uvicorn app.main:app --reload  # Backend on http://loca
 npm --workspace apps/web run test
 
 # Backend tests
-cd apps/api && pytest -v tests/
+cd apps/api-rs && cargo test
 
 # Lint and typecheck
 npm run lint
 npm --workspace apps/web run typecheck
-cd apps/api && ruff check . && ruff format --check .
+cd apps/api-rs && cargo clippy && cargo fmt --check
 ```
 
 ## Code Style
 
-- **Python**: Follow [ruff](https://docs.astral.sh/ruff/) formatting and linting rules
+- **Rust**: cargo clippy for lint, cargo fmt for format
 - **TypeScript**: Strict mode, no `any` types, use ESLint
 - **UI Components**: Use shadcn/ui primitives with Tailwind CSS only
 
 ## File Structure
 
-- Backend source: `apps/api/app/`
+- Backend source: `apps/api-rs/src/`
 - Frontend source: `apps/web/src/`
-- Backend tests: `apps/api/tests/test_*.py`
+- Backend tests: `apps/api-rs/src/**/*.rs` (unit tests next to source)
 - Frontend tests: `apps/web/src/lib/__tests__/*.test.ts`
 
 ## 300-Line Limit

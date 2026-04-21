@@ -2,7 +2,7 @@
 
 A radio propagation analysis system powered by NTIA's Irregular Terrain Model (ITM).
 
-NoWires computes point-to-point path loss, terrain profiles with Fresnel zone analysis, and area coverage predictions. It combines a FastAPI backend with Numba-accelerated computation and an interactive MapLibre frontend.
+NoWires computes point-to-point path loss, terrain profiles with Fresnel zone analysis, and area coverage predictions. It combines a Rust/Axum backend with GDAL-powered terrain data and an interactive MapLibre frontend.
 
 ## Features
 
@@ -16,14 +16,14 @@ NoWires computes point-to-point path loss, terrain profiles with Fresnel zone an
 
 ### Prerequisites
 
-- Python 3.12+
+- Rust 1.75+ (with Cargo)
 - Node.js 20+
 - npm
+- GDAL 3.x (for elevation tile processing)
 
 ### 1. Install Dependencies
 
 ```bash
-pip install -r apps/api/requirements.txt
 npm install
 ```
 
@@ -50,8 +50,7 @@ DEV_ORIGINS=http://192.168.1.100:3000
 ### 3. Run the Backend
 
 ```bash
-cd apps/api
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+npm run dev:api
 ```
 
 ### 4. Run the Frontend
@@ -68,8 +67,7 @@ NoWires fetches terrain elevation from multiple sources in priority order:
 
 1. **GLO30** (Copernicus 30m DEM) — highest priority
 2. **SRTM1** (1-arcsecond / 30m) — GeoTIFF tiles
-3. **python-srtm** — local `.hgt` files
-4. **OpenTopography API** — fallback (rate-limited)
+3. GDAL fallback (automatic)
 
 For best performance, download and configure local GLO30 or SRTM1 tiles. Tiles must be organized in the standard directory structure (e.g., `N14/E120.tif` for GLO30).
 
@@ -78,29 +76,27 @@ For best performance, download and configure local GLO30 or SRTM1 tiles. Tiles m
 ```
 nowires/
 ├── apps/
-│   ├── api/                     # FastAPI backend
-│   │   └── app/
-│   │       ├── main.py          # Server, CORS, rate limiting, endpoints
-│   │       ├── p2p.py           # Point-to-point analysis
-│   │       ├── coverage.py      # Coverage grid computation + PNG cache
-│   │       ├── coverage_radius.py  # Per-bearing coverage radius
-│   │       ├── coverage_workers.py # ProcessPool ITM workers
-│   │       ├── coverage_render.py  # PNG rendering + legend
-│   │       ├── itm_bridge.py    # pyitm wrapper
-│   │       ├── math_kernels.py  # Numba JIT Fresnel + color kernels
-│   │       ├── elevation_grid.py   # Elevation caching + bilinear sampling
-│   │       ├── elevation_fetch.py  # GLO30/SRTM1/rasterio fetching
-│   │       ├── signal_levels.py # dBm thresholds + colors + profile utils
-│   │       ├── terrain.py       # Haversine, bearing, profile generation
-│   │       ├── antenna.py       # Antenna gain patterns
-│   │       └── config.py        # Directory setup, env config
-│   └── web/                     # Next.js 16 + TypeScript frontend
+│   ├── api-rs/                  # Rust/Axum backend
+│   │   └── src/
+│   │       ├── main.rs          # Server, CORS, rate limiting
+│   │       ├── routes/          # API endpoint handlers
+│   │       │   ├── p2p.rs
+│   │       │   ├── coverage.rs
+│   │       │   └── coverage_radius.rs
+│   │       ├── itm_bridge.rs   # rustitm wrapper
+│   │       ├── terrain.rs      # Haversine, bearing, profile, PFL
+│   │       ├── elevation/      # GDAL GeoTIFF elevation grid + cache
+│   │       ├── coverage/       # ITM workers, PNG rendering, radius
+│   │       ├── fresnel.rs      # Fresnel profile + coverage coloring
+│   │       ├── signal_levels.rs
+│   │       └── antenna.rs      # Antenna gain pattern
+│   └── web/                    # Next.js 16 + TypeScript frontend
 │       └── src/
-│           ├── app/             # Routes and error boundary
-│           ├── components/      # MapLibre map, P2P panel, Coverage panel
-│           └── lib/             # API client, types, utilities
-├── data/                        # Runtime cache (gitignored)
-├── .github/workflows/ci.yml     # CI pipeline
+│           ├── app/            # Routes and error boundary
+│           ├── components/     # MapLibre map, P2P panel, Coverage panel
+│           └── lib/            # API client, types, utilities
+├── data/                       # Runtime cache (gitignored)
+├── .github/workflows/ci.yml    # CI pipeline
 └── LICENSE.md
 ```
 
@@ -110,12 +106,12 @@ nowires/
 # Frontend unit tests (vitest)
 npm --workspace apps/web run test
 
-# Backend tests (pytest)
-cd apps/api && pytest -v tests/
+# Backend tests (rust unit tests)
+cd apps/api-rs && cargo test
 
 # Full CI
-npm --workspace apps/web run lint && npm --workspace apps/web run typecheck && npm --workspace apps/web run build
-cd apps/api && ruff check . && ruff format --check . && pytest -v tests/
+npm run lint && npm run typecheck && npm run build:web
+cd apps/api-rs && cargo clippy && cargo fmt --check && cargo test
 ```
 
 ## Performance
@@ -126,12 +122,11 @@ cd apps/api && ruff check . && ruff format --check . && pytest -v tests/
 | 384×384   | ~8s       | <10ms   |
 
 Key optimizations:
-- Vectorized rasterio elevation reading (~160ms vs ~88s API fallback)
-- Numba JIT for Fresnel analysis and color mapping
-- ProcessPoolExecutor with shared elevation grid for ITM parallelism
+- GDAL vectorized GeoTIFF elevation reading (~160ms vs ~88s API fallback)
+- Rayon parallelism for coverage grid computation
 - Capped profile lengths for distant pixels (max 75 points)
 - LRU cache for rendered coverage PNGs
 
 ## Credits
 
-NoWires uses the [pyitm](https://github.com/tedaks/pyitm) library for NTIA Irregular Terrain Model calculations.
+NoWires uses the [rustitm](https://github.com/tedaks/rustitm) library for NTIA Irregular Terrain Model calculations and the [gdal](https://gdal.org/) crate for terrain elevation processing.

@@ -1,10 +1,5 @@
-__pycache__/
-*.pyc
 *.so
 *.egg-info/
-.venv/
-venv/
-env/
 data/srtm1/*.hgt
 data/srtm1/*.zip
 data/glo30/
@@ -34,9 +29,10 @@ docs/
 
 # Test artifacts
 .coverage
-.pytest_cache/
-.ruff_cache/
 playwright-report/
+
+# Rust
+target/
 
 # dev
 dev/

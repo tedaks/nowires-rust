@@ -23,7 +23,8 @@ If applicable, add screenshots to help explain the problem.
 **Environment (please complete the following information):**
 - OS: [e.g. macOS, Linux]
 - Browser [e.g. chrome, safari]
-- Python version [e.g. 3.12]
+- Rust version [e.g. 1.75+]
+- Node.js version [e.g. 20+]
 
 **Additional context**
 Any other context about the problem here.
