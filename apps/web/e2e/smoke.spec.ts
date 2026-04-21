@@ -13,7 +13,10 @@ test.describe("NoWires", () => {
 
   test("switches to Coverage tab", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("tab", { name: "Coverage" }).click();
+    const tab = page.getByRole("tab", { name: "Coverage" });
+    await expect(tab).toBeVisible();
+    await tab.click();
+    await expect(tab).toHaveAttribute("aria-selected", "true");
     await expect(page.getByRole("heading", { name: "Coverage" })).toBeVisible();
   });
 
@@ -24,7 +27,10 @@ test.describe("NoWires", () => {
 
   test("Coverage panel renders form inputs", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("tab", { name: "Coverage" }).click();
+    const tab = page.getByRole("tab", { name: "Coverage" });
+    await expect(tab).toBeVisible();
+    await tab.click();
+    await expect(tab).toHaveAttribute("aria-selected", "true");
     await expect(page.getByRole("button", { name: "Compute Radius" })).toBeVisible();
   });
 });
