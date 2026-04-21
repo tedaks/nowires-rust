@@ -1,0 +1,42 @@
+__pycache__/
+*.pyc
+*.so
+*.egg-info/
+.venv/
+venv/
+env/
+data/srtm1/*.hgt
+data/srtm1/*.zip
+data/glo30/
+data/landcover/
+public/**/*.png
+src/**/*.png
+.DS_Store
+server.log
+
+*.npz
+
+# Node / Next.js
+node_modules/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# Environment
+.env
+.env*.local
+
+# Legacy / tools
+tmp-legacy/
+frontend/
+docs/
+.swc/
+
+# Test artifacts
+.coverage
+.pytest_cache/
+.ruff_cache/
+playwright-report/
+
+# dev
+dev/

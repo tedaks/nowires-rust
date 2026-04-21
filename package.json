@@ -1,0 +1,14 @@
+{
+  "name": "nowires",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev:web": "npm --workspace apps/web run dev",
+    "dev:api": "cd apps/api-rs && cargo run",
+    "build:web": "npm --workspace apps/web run build",
+    "typecheck": "npm --workspace apps/web run typecheck",
+    "lint:api": "cd apps/api-rs && cargo clippy && cargo fmt --check",
+    "lint": "npm --workspace apps/web run lint && npm run lint:api"
+  }
+}
